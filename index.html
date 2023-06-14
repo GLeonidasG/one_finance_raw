@@ -19,6 +19,24 @@
 
 <body>
 
+  <div id="confirmationModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4>Confirm delete record?</h4>
+        </div>
+        <div class="modal-body">
+          <p>This action will delete the selected record from the list.</p> `
+          <p>Do you want to proceed?</p>
+        </div>
+        <div class="modal-footer">
+          <button data-bs-toggle="modal" data-bs-target="confirmationModal" class="btn btn-secondary">No</button>
+          <button data-bs-toggle="modal" data-bs-target="confirmationModal" class="btn btn-primary">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="createModal" class="modal fade" tabindex="-1">
 
     <div class="modal-dialog">
