@@ -6,11 +6,14 @@ class RecordService {
   validateRecordConsistency(record) {
     if (!record)
       throw new Error("Record undefined");
-    if (record.description === undefined || record.description === ""
-      || record.value === undefined || record.value === ""
-      || record.type === undefined
-      || record.entryDate === undefined || record.entryDate === "") {
-      throw new Error("Record with missing properties");
+    if (record.description === undefined || record.description === "")
+      throw new Error("Record with missing Description field");
+    if (record.value === undefined || record.value === "")
+      throw new Error("Record with missing Value field");
+    if (record.type === undefined)
+      throw new Error("Record with missing Type field");
+    if (record.entryDate === undefined || record.entryDate === "") {
+      throw new Error("Record with missing Entry Date field");
     }
   }
 

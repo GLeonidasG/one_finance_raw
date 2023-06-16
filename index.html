@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 
-<head>
+  <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>One Finance</title>
@@ -10,123 +10,140 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel='stylesheet' type='text/css' media='screen' href='index.css'>
     <style>
-        body {
-            height: 100vh;
-            width: 100vw;
-        }
+body {
+  height: 100vh;
+  width: 100vw;
+}
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
 
-  <div id="confirmationModal" class="modal fade" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4>Confirm delete record?</h4>
-        </div>
-        <div class="modal-body">
-          <p>This action will delete the selected record from the list.</p>
-          <p>Do you want to proceed?</p>
-        </div>
-        <div class="modal-footer">
-          <button id="deleteCancelationButotn" data-bs-toggle="modal" data-bs-target="confirmationModal" class="btn btn-secondary">No</button>
-          <button id="deleteConfirmationButton" data-bs-toggle="modal" data-bs-target="confirmationModal" class="btn btn-primary">Yes</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="createModal" class="modal fade" tabindex="-1">
-
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 id="modalTitle">Create new record</h4>
-        </div>
-
-        <form id="modalForm" class="modal-body">
-          <div class="mb-3">
-            <label for="modalDescription" class="form-label">Description</label>
-            <input type="text" class="form-control" id="modalDescription" aria-describedby="emailHelp">
+    <div id="confirmationModal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4>Confirm delete record?</h4>
           </div>
-          <div class="mb-3">
-            <label for="modalValue" class="form-label">Value</label>
-            <input type="number" class="form-control" id="modalValue">
+          <div class="modal-body">
+            <p>This action will delete the selected record from the list.</p>
+            <p>Do you want to proceed?</p>
           </div>
-          <div class="mb-3">
-            <label for="modalEnterDate" class="form-label">Enter Date</label>
-            <input type="date" class="form-control" id="modalEnterDate">
-          </div>
-          <div class="form-check">
-            <input value="CREDIT" class="form-check-input" type="radio" name="modalRadio" id="modalRadioCredit">
-            <label class="form-check-label" for="radioCredit">
-              Credit
-            </label>
-          </div>
-          <div class="form-check">
-            <input value="DEBIT" class="form-check-input" type="radio" name="modalRadio" id="modalRadioDebit" checked>
-            <label class="form-check-label" for="radioDebit">
-              Debit
-            </label>
-          </div>
-        </form>
-
-        <div class="modal-footer">
-          <div class="mb-3">
-            <button data-bs-toggle="modal" data-bs-target="#createModal" type="reset" id="resetForm" form="modalForm" class="btn btn-secondary">
-              Cancel
-            </button>
-          </div>
-          <div class="mb-3">
-            <button type="submit" id="modalSubmit" form="modalForm" class="btn btn-primary">
-              Submit
-            </button>
+          <div class="modal-footer">
+            <button id="deleteCancelationButotn" data-bs-toggle="modal" data-bs-target="confirmationModal" class="btn btn-secondary">No</button>
+            <button id="deleteConfirmationButton" data-bs-toggle="modal" data-bs-target="confirmationModal" class="btn btn-primary">Yes</button>
           </div>
         </div>
       </div>
     </div>
 
-  </div>
 
-
-  <div class="container p-4">
-
-    <div class="row">
-      <h1>One Finance</h1>
-    </div>
-    <div class="row">
-
-    <div class="d-flex-inline p-2">
-      <div class="bg-light p-2 m-4 border rounded-4 ">
-        <button id="createButton" class="btn btn-primary m-2">Add new record</button>
-        <div class="m-2 shadow border border-light rounded-4 overflow-auto" style="max-height: 48rem;">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Description</th>
-                <th scope="col">Value</th>
-                <th scope="col">Type</th>
-                <th scope="col">Enter Date</th>
-                <th scope="col"></th>
-            </thead>
-
-            <tbody id="tableBody">
-            </tbody>
-          </table>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+          <div id="toastIcon" class="rounded-1 me-2 p-2 bg-danger" alt="..."> </div>
+          <strong id="toastTitle" class="me-auto"><!-- THIS IS JUST A PLACEHOLDER -->></strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div id="toastMessage" class="toast-body">
+          <!--  THIS IS JUST A PLACEHOLDER -->
         </div>
       </div>
     </div>
 
+    <div id="createModal" class="modal fade" tabindex="-1">
+
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 id="modalTitle">Create new record</h4>
+          </div>
+
+          <form id="modalForm" class="modal-body">
+            <div class="mb-3">
+              <label for="modalDescription" class="form-label">Description</label>
+              <input type="text" class="form-control" id="modalDescription" aria-describedby="emailHelp">
+            </div>
+            <div class="mb-3">
+              <label for="modalValue" class="form-label">Value</label>
+              <input type="number" class="form-control" id="modalValue">
+            </div>
+            <div class="mb-3">
+              <label for="modalEnterDate" class="form-label">Enter Date</label>
+              <input type="date" class="form-control" id="modalEnterDate">
+            </div>
+            <div class="form-check">
+              <input value="CREDIT" class="form-check-input" type="radio" name="modalRadio" id="modalRadioCredit">
+              <label class="form-check-label" for="radioCredit">
+                Credit
+              </label>
+            </div>
+            <div class="form-check">
+              <input value="DEBIT" class="form-check-input" type="radio" name="modalRadio" id="modalRadioDebit" checked>
+              <label class="form-check-label" for="radioDebit">
+                Debit
+              </label>
+            </div>
+          </form>
+
+          <div class="modal-footer">
+            <div class="mb-3">
+              <button data-bs-toggle="modal" data-bs-target="#createModal" type="reset" id="resetForm" form="modalForm" class="btn btn-secondary">
+                Cancel
+              </button>
+            </div>
+            <div class="mb-3">
+              <button type="submit" id="modalSubmit" form="modalForm" class="btn btn-primary">
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-  </div>
+
+    <div class="container p-4">
+
+      <div class="row">
+        <h1>One Finance</h1>
+      </div>
+      <div class="row">
+
+        <div class="d-flex-inline p-2">
+          <div class="bg-light p-2 m-4 border rounded-4 ">
+            <button id="createButton" class="btn btn-primary m-2">Add new record</button>
+            <button id="testToast" class="btn btn-primary m-2">Test Toast</button>
+            <div class="m-2 shadow border border-light rounded-4 overflow-auto" style="max-height: 48rem;">
+              <table class="table table-striped">
+                <thead id="tableHead" >
+                  <!-- <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Value</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Enter Date</th>
+                    <th scope="col"></th>
+                  </tr> -->
+                </thead>
+
+                <tbody id="tableBody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.7.0.slim.min.js" integrity="sha256-tG5mcZUtJsZvyKAxYLVXrmjKBVLd6VpVccqz/r4ypFE=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <script src='RecordService.js'></script>
+    <script src='MessageToast.js'></script>
     <script src='index.js'></script>
-</body>
+  </body>
 
 </html>
