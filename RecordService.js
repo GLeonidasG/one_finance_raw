@@ -1,8 +1,14 @@
 class RecordService {
   #records;
+  #nextID;
   constructor() {
     this.#records = new Map();
+    this.#nextID = 0;
     }
+
+  getNextID() {
+    return this.#nextID;
+  }
   validateRecordConsistency(record) {
     if (!record)
       throw new Error("Record undefined");
@@ -19,7 +25,7 @@ class RecordService {
 
   create(record) {
     this.validateRecordConsistency(record);
-    this.#records.set(++nextID, record);
+    this.#records.set(++this.#nextID, record);
   }
 
   validateIdConsistency(ID) {
