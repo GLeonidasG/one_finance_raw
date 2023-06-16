@@ -1,4 +1,3 @@
-// TODO: Create table handler
 // TODO: Create modal handler
 // TODO: Isolate most of the content of this file into a controller class
 
@@ -23,9 +22,9 @@ createButton.addEventListener("click", openModalForCreate);
 deleteConfirmationButton.addEventListener("click", deleteRecord)
 deleteCancelationButotn.addEventListener("click", () => currentID = null)
 
-const recordService = new RecordService();
-
 class TableManager {
+
+  #tableBody;
 
   constructor(tableBody) {
     if (typeof tableBody) this.#tableBody = document.getElementById(tableBody);
@@ -46,7 +45,7 @@ class TableManager {
   }
 
   #applyDataToElement(data, tableRow) {
-    for (prop in data) {
+    for (const prop in data) {
       const rowData = document.createElement("td");
       rowData.append(String(data[prop]));
       rowData.setAttribute("style", `cursor: pointer;`);
@@ -84,11 +83,11 @@ class TableManager {
   
     let oldRow = document.getElementById(`tableRow-${ID}`);
   
-    const tableRow = createRowElement(ID);
+    const tableRow = this.#createRowElement(ID);
   
-    applyDataToElement(data, tableRow);
+    this.#applyDataToElement(data, tableRow);
   
-    const trash = createTrashButton();
+    const trash = this.#createTrashButton();
   
     tableRow.appendChild(trash);
     this.#tableBody.replaceChild(tableRow, oldRow);
@@ -102,6 +101,8 @@ class TableManager {
   }
 }
 
+const recordService = new RecordService();
+const tableManager = new TableManager("tableBody");
 
 // ============= START CREATE OPERATION ================
 
@@ -110,52 +111,6 @@ function openModalForCreate() {
   document.getElementById("modalTitle").innerHTML = "Create new record"
   modalForm.reset();
   recordModal.show();
-}
-
-function createTrashButton() {
-  const trashData = document.createElement("td");
-  const trashIcon = document.createElement("i");
-
-  trashIcon.setAttribute("id", "deleteRecordIcon")
-  trashIcon.setAttribute("class", "bi bi-trash3-fill");
-  trashIcon.setAttribute("style", "cursor: pointer;");
-  trashData.appendChild(trashIcon);
-  trashData.addEventListener("click", openModalForDelete);
-
-  return trashData;
-}
-
-
-function appendData(record) {
-  if (!record) {
-    alert("There are no data to be saved!");
-    return;
-  }
-
-  const tableRow = createRowElement(record.ID);
-
-  applyDataToElement(record, tableRow);
-
-  const trash = createTrashButton();
-
-  tableRow.appendChild(trash);
-  tableBody.appendChild(tableRow);
-}
-
-function applyDataToElement(data, tableRow) {
-  for (prop in data) {
-    const rowData = document.createElement("td");
-    rowData.append(String(data[prop]));
-    rowData.setAttribute("style", `cursor: pointer;`);
-    rowData.addEventListener("click", openModalForUpdate);
-    tableRow.appendChild(rowData);
-  }
-}
-
-function createRowElement(ID) {
-  const tableRow = document.createElement("tr");
-  tableRow.setAttribute("id", `tableRow-${ID}`);
-  return tableRow;
 }
 
 // ================ END CREATE OPERATION ================
@@ -178,24 +133,6 @@ function openModalForUpdate(e) {
   recordModal.show();
 }
 
-function updateData(ID, record) {
-  if (!record) {
-    alert("There are no data to be saved!");
-    return;
-  }
-
-  let oldRow = document.getElementById(`tableRow-${ID}`);
-
-  const tableRow = createRowElement(ID);
-
-  applyDataToElement(record, tableRow);
-
-  const trash = createTrashButton();
-
-  tableRow.appendChild(trash);
-  tableBody.replaceChild(tableRow, oldRow);
-}
-
 // ================ END UPDATE OPERATION   ================
 
 // ================ START DELETE OPERATION   ================
@@ -206,17 +143,11 @@ function openModalForDelete(e) {
 }
 
 function deleteRecord() {
-
   recordService.delete(Number(currentID));
-  removeData(currentID);
-}
-
-
-function removeData(ID) {
-  const tableRow = document.getElementById(`tableRow-${ID}`);
-
-  tableBody.removeChild(tableRow);
-  currentID = null;
+  tableManager.removeData(currentID);
+  new MessageToast()
+    .mountSuccessToast("Record deleted successfully!")
+    .showToast();
 }
 
 // ================ END DELETE OPERATION     ================
@@ -239,12 +170,12 @@ function submit(event) {
     if (operation === "CREATE") {
       recordService.create(recordDto);
       const record = recordService.readById(nextID);
-      appendData(record);
+      tableManager.appendData(record);
       message.mountSuccessToast("Record created successfully!");
     } else {
       recordService.update(currentID, recordDto);
       const record = recordService.readById(currentID);
-      updateData(currentID, record);
+      tableManager.updateData(currentID, record);
       message.mountSuccessToast("Record updated successfully!");
     }
     currentID = null;
