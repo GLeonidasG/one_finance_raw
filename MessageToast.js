@@ -1,4 +1,4 @@
-// ======================== TOAST ========================
+
 const SUCCESS_TOAST_CLASS = "rounded-1 me-2 p-2 bg-success";
 const ERROR_TOAST_CLASS = "rounded-1 me-2 p-2 bg-danger";
 const WARNING_TOAST_CLASS = "rounded-1 me-2 p-2 bg-warning";
