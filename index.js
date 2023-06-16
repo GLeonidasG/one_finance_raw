@@ -1,193 +1,137 @@
-// TODO: Create modal handler
-// TODO: Isolate most of the content of this file into a controller class
+let createEventListener = null;
+let updateEventListener = null;
 
-/**@type {"CREATE" | "UPDATE" }*/
-let operation = "CREATE";
-let nextID = 0;
-let currentID = null;
+class RecordController {
+  #currentID = null;
 
-const recordModal = new bootstrap.Modal('#createModal', { keyboard: true });
-const confirmationModal = new bootstrap.Modal('#confirmationModal', { keyboard: true });
-
-// const tableBody = document.getElementById("tableBody");
-const modalForm = document.getElementById("modalForm");
-const createButton = document.getElementById("createButton");
-
-const deleteConfirmationButton = document
-  .getElementById("deleteConfirmationButton");
-const deleteCancelationButotn = document
-  .getElementById("deleteConfirmationButton");
-
-createButton.addEventListener("click", openModalForCreate);
-deleteConfirmationButton.addEventListener("click", deleteRecord)
-deleteCancelationButotn.addEventListener("click", () => currentID = null)
-
-class TableManager {
-
-  #tableBody;
-
-  constructor(tableBody) {
-    if (typeof tableBody) this.#tableBody = document.getElementById(tableBody);
-    else this.#tableBody = tableBody;
+  constructor() {
+    const deleteCallback = (e) => this.delete.call(this, e);
+    const updateCallback = (e) => this.update.call(this, e);
+    this.recordService = new RecordService();
+    this.tableManager = new TableManager("tableBody", updateCallback, deleteCallback);
+    this.modalForm = document.getElementById("modalForm");
+    this.createButton = document.getElementById("createButton");
+    this.deleteConfirmationButton = document
+      .getElementById("deleteConfirmationButton");
+    this.deleteCancelationButton = document
+      .getElementById("deleteConfirmationButton");
+    this.recordModal = new bootstrap
+      .Modal('#createModal', { keyboard: true });
+    this.confirmationModal = new bootstrap
+      .Modal('#confirmationModal', { keyboard: true });
+    this.message = new MessageToast();
+    this.setupEvents();
   }
 
-  #createTrashButton() {
-    const trashData = document.createElement("td");
-    const trashIcon = document.createElement("i");
-  
-    trashIcon.setAttribute("id", "deleteRecordIcon")
-    trashIcon.setAttribute("class", "bi bi-trash3-fill");
-    trashIcon.setAttribute("style", "cursor: pointer;");
-    trashData.appendChild(trashIcon);
-    trashData.addEventListener("click", openModalForDelete);
-  
-    return trashData;
+  #identifyRadioToCheck(record) {
+    return record.type === "CREDIT" ? "modalRadioCredit" : "modalRadioDebit";
   }
 
-  #applyDataToElement(data, tableRow) {
-    for (const prop in data) {
-      const rowData = document.createElement("td");
-      rowData.append(String(data[prop]));
-      rowData.setAttribute("style", `cursor: pointer;`);
-      rowData.addEventListener("click", openModalForUpdate);
-      tableRow.appendChild(rowData);
+  #populateModal(record) {
+    document.getElementById("modalTitle").innerHTML = "Update record"
+    document.getElementById("modalDescription").value = record.description
+    document.getElementById("modalValue").value = record.value
+    document.getElementById("modalEnterDate").value = record.entryDate
+    document.getElementById(this.#identifyRadioToCheck(record)).checked = true;
+  }
+
+  setupEvents() {
+    this.createButton.addEventListener("click", (e) => this.create.call(this, e));
+    this.deleteConfirmationButton.addEventListener("click", (e) => this.confirmDelete.call(this, e));
+    this.deleteCancelationButton.addEventListener("click", () => this.#currentID = null);
+    createEventListener = (e) => this.submitCreate.call(this, e);
+    updateEventListener = (e) => this.submitUpdate.call(this, e);
+  }
+
+  openModal(operation) {
+    if (operation === "DELETE") this.confirmationModal.show();
+    else {
+      const modalTitle = operation === "CREATE" ? "Create new record" : "Update record";
+      document.getElementById("modalTitle").innerHTML = modalTitle;
+      if (operation === "CREATE") this.modalForm.addEventListener("submit", createEventListener, true);
+      else this.modalForm.addEventListener("submit", updateEventListener, false);
+      this.modalForm.reset();
+      this.recordModal.show();
     }
   }
-  
-  #createRowElement(ID) {
-    const tableRow = document.createElement("tr");
-    tableRow.setAttribute("id", `tableRow-${ID}`);
-    return tableRow;
+
+  create() {
+    this.openModal("CREATE");
   }
 
-  appendData(data) {
-    if (!data) {
-      alert("There are no data to be saved!");
-      return;
+  update(e) {
+    this.#currentID = e.target.parentNode.id.split("-")[1];
+    const record = this.recordService.readById(this.#currentID);
+    this.openModal("UPDATE");
+    this.#populateModal(record);
+  }
+
+  delete(e) {
+    this.#currentID = e.target.parentNode.parentNode.id.split("-")[1];
+    this.openModal("DELETE");
+  }
+
+  confirmDelete() {
+    this.recordService.delete(this.#currentID);
+    this.tableManager.removeData(this.#currentID);
+    this.message.mountSuccessToast("Record deleted successfully");
+    this.finishSubmit();
+  }
+
+  formatFormSubmission(target) {
+    const description = target[0].value;
+    const value = target[1].value;
+    const entryDate = target[2].value;
+    const type = target[3].checked ? target[3].value : target[4].value;
+
+    return { description, value, type, entryDate };
+
+  }
+
+  submitCreate(event) {
+    try {
+      const recordDto = this.formatFormSubmission(event.target);
+      event.preventDefault();
+      this.recordService.create(recordDto);
+      const nextID = this.recordService.getNextID();
+      const record = this.recordService.readById(nextID);
+      this.tableManager.appendData(record);
+      this.message.mountSuccessToast("Record created successfully!");
+      this.finishSubmit();
+      this.modalForm.removeEventListener("submit", createEventListener, true);
+    } catch (e) {
+      console.error(JSON.stringify(e));
+      this.message
+        .mountErrorToast(e.message)
+        .showToast();
     }
-  
-    const tableRow = this.#createRowElement(data.ID);
-  
-    this.#applyDataToElement(data, tableRow);
-  
-    const trash = this.#createTrashButton();
-  
-    tableRow.appendChild(trash);
-    this.#tableBody.appendChild(tableRow);
   }
-  updateData(ID, data) {
-    if (!data) {
-      alert("There are no data to be saved!");
-      return;
+
+  submitUpdate(event) {
+    try {
+      event.preventDefault();
+      const recordDto = this.formatFormSubmission(event.target);
+      this.recordService.update(this.#currentID, recordDto);
+      const record = this.recordService.readById(this.#currentID);
+      this.tableManager.updateData(this.#currentID, record);
+      this.message.mountSuccessToast("Record updated successfully!");
+      this.finishSubmit();
+      this.modalForm.removeEventListener("submit", updateEventListener, false);
+    } catch (e) {
+      console.error(JSON.stringify(e));
+      this.message
+        .mountErrorToast(e.message)
+        .showToast();
     }
-  
-    let oldRow = document.getElementById(`tableRow-${ID}`);
-  
-    const tableRow = this.#createRowElement(ID);
-  
-    this.#applyDataToElement(data, tableRow);
-  
-    const trash = this.#createTrashButton();
-  
-    tableRow.appendChild(trash);
-    this.#tableBody.replaceChild(tableRow, oldRow);
   }
 
-  removeData(ID) {
-    const tableRow = document.getElementById(`tableRow-${ID}`);
-
-    this.#tableBody.removeChild(tableRow);
-    currentID = null;
+  finishSubmit() {
+    this.#currentID = null;
+    this.modalForm.reset();
+    this.recordModal.hide();
+    this.message.showToast();
   }
-}
-
-const recordService = new RecordService();
-const tableManager = new TableManager("tableBody");
-
-// ============= START CREATE OPERATION ================
-
-function openModalForCreate() {
-  operation = "CREATE";
-  document.getElementById("modalTitle").innerHTML = "Create new record"
-  modalForm.reset();
-  recordModal.show();
-}
-
-// ================ END CREATE OPERATION ================
-
-// ================ START UPDATE OPERATION ================
-
-function identifyRadioToCheck(record) {
-  return record.type === "CREDIT" ? "modalRadioCredit" : "modalRadioDebit";
-}
-
-function openModalForUpdate(e) {
-  currentID = e.target.parentNode.id.split("-")[1];
-  const record = recordService.readById(currentID);
-  operation = "UPDATE";
-  document.getElementById("modalTitle").innerHTML = "Update record"
-  document.getElementById("modalDescription").value = record.description
-  document.getElementById("modalValue").value = record.value
-  document.getElementById("modalEnterDate").value = record.entryDate
-  document.getElementById(identifyRadioToCheck(record)).checked = true;
-  recordModal.show();
-}
-
-// ================ END UPDATE OPERATION   ================
-
-// ================ START DELETE OPERATION   ================
-
-function openModalForDelete(e) {
-  currentID = e.target.parentNode.parentNode.id.split("-")[1];
-  confirmationModal.show();
-}
-
-function deleteRecord() {
-  recordService.delete(Number(currentID));
-  tableManager.removeData(currentID);
-  new MessageToast()
-    .mountSuccessToast("Record deleted successfully!")
-    .showToast();
-}
-
-// ================ END DELETE OPERATION     ================
-
-function formatFormSubmission(target) {
-  const description = target[0].value;
-  const value = target[1].value;
-  const entryDate = target[2].value;
-  const type = target[3].checked ? target[3].value : target[4].value;
-
-  return { description, value, type, entryDate };
 
 }
 
-function submit(event) {
-  event.preventDefault();
-  const message = new MessageToast();
-  try {
-    const recordDto = formatFormSubmission(event.target);
-    if (operation === "CREATE") {
-      recordService.create(recordDto);
-      const record = recordService.readById(nextID);
-      tableManager.appendData(record);
-      message.mountSuccessToast("Record created successfully!");
-    } else {
-      recordService.update(currentID, recordDto);
-      const record = recordService.readById(currentID);
-      tableManager.updateData(currentID, record);
-      message.mountSuccessToast("Record updated successfully!");
-    }
-    currentID = null;
-    modalForm.reset();
-    recordModal.hide();
-    message.showToast();
-  } catch (e) {
-    console.error(JSON.stringify(e));
-    message
-      .mountErrorToast(e.message)
-      .showToast();
-  }
-}
-
-modalForm.addEventListener("submit", submit);
+new RecordController()
